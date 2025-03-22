@@ -3,7 +3,7 @@ import subprocess
 from loguru import logger 
 
 class Subprocessor:
-    def __init__(self, repo_url) -> None:
+    def __init__(self) -> None:
         """
         Constructor of the Processor class.
 
@@ -16,7 +16,6 @@ class Subprocessor:
         -------
         None
         """
-        self.repo_url = repo_url
 
     def _run_command(self, command, cwd=None) -> str:
         """
@@ -42,34 +41,40 @@ class Subprocessor:
             logger.error(f"Error while executing command: {e.cmd} (return code: {e.returncode}): {e.stderr}")
             raise
 
-    def git_authenticate(self, repo_url, local_path) -> None:
+    def git_authenticate(self, repository_url, local_path, github_access_token) -> None:
         """
-        Clone a Git repository if it is not already done.
+        Clone a Git repository with authentication if it is not already done.
         
         Parameters
         ----------
-        
-        repo_url : str
+        repository_url : str
             The URL of the Git repository.
         local_path : str
-            The local path where the repository will be cloned.    
+            The local path where the repository will be cloned.
+        github_access_token : str
+            The personal access token for authentication.
         
         Returns
         -------
         None
         """
-
         if os.path.exists(local_path) and os.path.isdir(local_path):
             logger.info(f"Repository already exists at {local_path}. Skipping clone.")
             return
 
+        # Inject the token into the repository URL
+        if repository_url.startswith("https://"):
+            auth_repo_url = repository_url.replace("https://", f"https://{github_access_token}@")
+        else:
+            raise ValueError("Unsupported repository URL format. Only HTTPS is supported.")
+
         try:
-            print(f"Clonage du dépôt {repo_url} dans {local_path}...")
-            self._run_command(["git", "clone", repo_url, local_path])
+            logger.info(f"Cloning repository {repository_url} into {local_path}...")
+            self._run_command(["git", "clone", auth_repo_url, local_path])
         except subprocess.CalledProcessError as e:
-            print(f"Error while cloning the repository: {e}.")
+            logger.error(f"Error while cloning the repository: {e}.")
             raise
-            
+
             
     def git_add_commit_push(self, local_path, commit_message) -> None:
         """
