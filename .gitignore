@@ -13,3 +13,4 @@ wheels/
 delete.sh
 deploy.sh
 .env
+data/
