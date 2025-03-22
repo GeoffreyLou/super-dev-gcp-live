@@ -15,7 +15,8 @@ class GenerateChanges:
             self, 
             data_folder_name: str, 
             data_file_name: str,
-            repo_url: str = "",
+            repository_url: str,
+            github_access_token: str
         ) -> None: 
         """
         Constructor of the GenerateChanges class.
@@ -27,15 +28,18 @@ class GenerateChanges:
         data_file_name : str
             The name of the file where the commit messages will be saved.
             Be careuful, the .txt extension will be added automatically.
-        repo_url : str
+        repository_url : str
             The URL of the Git repository of this project.
+        github_access_token : str
+            The personal access token for authentication.
             
         Returns
         -------
         None
         """
+        self.repository_url = repository_url
+        self.github_access_token = github_access_token
         self.data_folder = Path(data_folder_name)
-        self.data_folder.mkdir(exist_ok=True)
         self.file_path = self.data_folder / f"{data_file_name}.txt"
         self.number_of_commits = random.randint(0, 10)
         
@@ -51,7 +55,7 @@ class GenerateChanges:
         """
         return True if self.number_of_commits > 0 else False 
     
-    def generate_changes(self) -> None:
+    def generate_commits(self) -> None:
         """
         Generate random sentence in a file from 0 to 10 times.
         
@@ -63,8 +67,16 @@ class GenerateChanges:
             logger.info("I'm a super developer, I may work hard today.")
             for _ in range(self.number_of_commits):
                 commit_message = Faker().sentence(nb_words=8)
-                logger.info(commit_message)
                 self.file_path.write_text(commit_message)
             logger.info(f'I made {self.number_of_commits} commits today, time to rest.')
         else: 
             logger.info("I'm a lazy developer, I may work tomorrow.")
+            
+    def generate_changes(self) -> None:
+        
+        sub = Subprocessor
+        sub.git_authenticate(
+            repository_url=self.repository_url, 
+            local_path=self.data_folder, 
+            github_access_token=self.github_access_token
+        )

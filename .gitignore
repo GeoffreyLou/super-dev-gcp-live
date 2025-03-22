@@ -12,3 +12,4 @@ wheels/
 # Local files
 delete.sh
 deploy.sh
+.env
