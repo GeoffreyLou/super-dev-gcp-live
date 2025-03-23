@@ -17,8 +17,11 @@ class GenerateChanges:
             data_file_name: str,
             repository_url: str,
             github_access_token: str,
-            branch_name: str,
-            user_email: str
+            user_email: str,
+            repository_owner:str,
+            repository_name:str,
+            source_branch:str,
+            target_branch:str
         ) -> None: 
         """
         Constructor of the GenerateChanges class.
@@ -34,10 +37,16 @@ class GenerateChanges:
             The URL of the Git repository of this project.
         github_access_token : str
             The personal access token for authentication.
-        branch_name : str
-            The branch name to commit the changes.
         user_email : str
             The email of the user to commit the changes.
+        repository_owner : str
+            The owner of the repository.
+        repository_name : str
+            The name of the repository.
+        source_branch : str
+            The source branch of the repository.
+        target_branch : str
+            The target branch of the repository.
             
         Returns
         -------
@@ -45,8 +54,11 @@ class GenerateChanges:
         """
         self.repository_url = repository_url
         self.github_access_token = github_access_token
-        self.branch_name = branch_name
         self.user_email = user_email
+        self.repository_owner=repository_owner
+        self.repository_name=repository_name
+        self.source_branch=source_branch
+        self.target_branch=target_branch
         self.data_folder = Path(data_folder_name)
         self.file_path = self.data_folder / f"{data_file_name}.txt"
         self.number_of_commits = random.randint(0, 10)
@@ -116,7 +128,7 @@ class GenerateChanges:
         try:
             GitUtils.git_check_or_create_branch(
                 local_path=self.data_folder, 
-                branch_name=self.branch_name
+                branch_name=self.source_branch
             )
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -141,7 +153,7 @@ class GenerateChanges:
                 GitUtils.git_add_commit_push(
                     local_path=self.data_folder, 
                     commit_message=string,
-                    branch_name=self.branch_name
+                    branch_name=self.source_branch
                 )
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -173,7 +185,7 @@ class GenerateChanges:
                 # Change the branch
                 GitUtils.check_or_create_branch(
                     local_path=self.data_folder, 
-                    branch_name=self.branch_name
+                    branch_name=self.source_branch
                 )
 
                 # Generate sentences according to number of commits
@@ -187,8 +199,27 @@ class GenerateChanges:
                     GitUtils.add_commit_push(
                         local_path=self.data_folder, 
                         commit_message=string,
-                        branch_name=self.branch_name
+                        branch_name=self.source_branch
                     )
+                
+                # Create a pull request
+                pr = GitUtils.create_pull_request(
+                    repo_owner=self.repository_owner,
+                    repo_name=self.repository_name,
+                    source_branch=self.source_branch,
+                    target_branch=self.target_branch,
+                    title=":rocket: Super Dev is working hard today!",
+                    body=f"I'm proud, I commited {self.number_of_commits} changes today.",
+                    github_token=self.github_access_token
+                )
+                
+                # Merge the pull request
+                GitUtils.merge_pull_request(
+                    repo_owner=self.repository_owner,
+                    repo_name=self.repository_name,
+                    pull_number=pr["number"],
+                    github_token=self.github_access_token
+                )
                 
                 logger.success(f'I worked hard today with {self.number_of_commits} commits.')
             except Exception as e:

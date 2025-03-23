@@ -1,11 +1,11 @@
 import os
+import requests
 import subprocess
 from loguru import logger 
 
 class GitUtils:
-    
     @staticmethod
-    def run_command(command, cwd: str) -> str:
+    def run_command(command, cwd: str=None) -> str:
         """
         Execute a shell command and return the output if required.
         
@@ -29,7 +29,7 @@ class GitUtils:
             raise
 
     @staticmethod
-    def clone_repository(repository_url: str, local_path: str,github_access_token: str) -> None:
+    def clone_repository(repository_url: str, local_path: str, github_access_token: str) -> None:
         """
         Clone a Git repository with authentication.
         
@@ -156,3 +156,102 @@ class GitUtils:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error while committing or pushing: {e}")
             raise
+        
+    @staticmethod
+    def create_pull_request(
+            repo_owner:str, 
+            repo_name:str, 
+            source_branch:str, 
+            target_branch:str, 
+            title:str, 
+            body:str, 
+            github_token:str
+        ) -> dict:
+        """
+        Create a pull request on GitHub.
+
+        Parameters
+        ----------
+        repo_owner : str
+            The owner of the repository (e.g., "GeoffreyLou").
+        repo_name : str
+            The name of the repository (e.g., "gcp-super-dev-live").
+        source_branch : str
+            The branch to merge from (e.g., "feat/my-feature").
+        target_branch : str
+            The branch to merge into (e.g., "develop").
+        title : str
+            The title of the pull request.
+        body : str
+            The body/description of the pull request.
+        github_token : str
+            The GitHub Personal Access Token for authentication.
+
+        Returns
+        -------
+        dict
+            The response from the GitHub API.
+        """
+        url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls"
+        headers = {
+            "Authorization": f"Bearer {github_token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        data = {
+            "title": title,
+            "head": source_branch,
+            "base": target_branch,
+            "body": body
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 201:
+            logger.info(f"Pull request created successfully: {response.json().get('html_url')}")
+            return response.json()
+        else:
+            logger.error(f"Failed to create pull request: {response.status_code} - {response.text}")
+            response.raise_for_status()
+            
+    @staticmethod
+    def merge_pull_request(
+            repo_owner: str, 
+            repo_name: str, 
+            pull_number: int, 
+            github_token: str
+        ) -> dict:
+        """
+        Merge a pull request on GitHub.
+
+        Parameters
+        ----------
+        repo_owner : str
+            The owner of the repository.
+        repo_name : str
+            The name of the repository.
+        pull_number : int
+            The number of the pull request to merge.
+        github_token : str
+            The GitHub Personal Access Token for authentication.
+
+        Returns
+        -------
+        dict
+            The response from the GitHub API.
+        """
+        url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls/{pull_number}/merge"
+        headers = {
+            "Authorization": f"Bearer {github_token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        data = {
+            "commit_title": f"Merge PR #{pull_number}",
+            "merge_method": "merge" 
+        }
+
+        response = requests.put(url, headers=headers, json=data)
+        if response.status_code == 200:
+            logger.info(f"Pull request merged successfully: {response.json()}")
+            return response.json()
+        else:
+            logger.error(f"Failed to merge pull request: {response.status_code} - {response.text}")
+            response.raise_for_status()
