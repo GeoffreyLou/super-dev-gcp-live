@@ -14,3 +14,11 @@ delete.sh
 deploy.sh
 .env
 data/
+.DS_Store
+
+# Terraform 
+.terraform 
+.terraform.*
+terraform.*
+backend.tf
+terraform.tfvars
