@@ -92,26 +92,16 @@ resource "google_project_iam_member" "main" {
 # 🟢 Deploy sample Docker image
 # ----------------------------------------------------------------------------------------------------------------------
 
-resource "null_resource" "build_image" {
+resource "null_resource" "deploy_sample_job" {
   depends_on = [ google_artifact_registry_repository.main ]
 
   provisioner "local-exec" {
     command = <<EOT
-      docker build -t "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.name}/${var.job_name}:latest" "../../modules/cloud-run/sample/."
+      docker build -t "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.name}/${var.job_name}:latest" "../../modules/cloud-run/sample/." \
+      && docker push "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.name}/${var.job_name}:latest"
     EOT
   }
 }
-
-resource "null_resource" "push_image" {
-  depends_on = [ null_resource.build_image ]
-
-  provisioner "local-exec" {
-    command = <<EOT
-      docker push "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.name}/${var.job_name}:latest"
-    EOT
-  }
-}
-
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -120,7 +110,7 @@ resource "null_resource" "push_image" {
 
 resource "google_cloud_run_v2_job" "main" {
   depends_on = [ 
-    null_resource.push_image,
+    null_resource.deploy_sample_job,
     google_project_iam_member.main
   ]
 
