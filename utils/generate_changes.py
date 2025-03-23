@@ -61,7 +61,7 @@ class GenerateChanges:
         self.target_branch=target_branch
         self.data_folder = Path(data_folder_name)
         self.file_path = self.data_folder / f"{data_file_name}.txt"
-        self.number_of_commits = random.randint(0, 2)
+        self.number_of_commits = random.randint(0, 10)
         
     def _will_i_work_today(self) -> bool:
         """
