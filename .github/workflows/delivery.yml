@@ -80,12 +80,12 @@ jobs:
 
       - name: Terraform init
         id: terraform_init
-        working-directory: .terraform/environments/${{ env.ENVIRONMENT }}
+        working-directory: ./terraform/environments/${{ env.ENVIRONMENT }}
         run: terraform init
 
       - name: Terraform apply
         id: terraform_apply
-        working-directory: .terraform/environments/${{ env.ENVIRONMENT }}
+        working-directory: ./terraform/environments/${{ env.ENVIRONMENT }}
         run: terraform apply -auto-approve
 
   deploy_cloud_run:
