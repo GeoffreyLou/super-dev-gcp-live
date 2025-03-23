@@ -9,6 +9,8 @@
   - Service Account for Cloud Run and roles
   - Artifact Registry with lifecycle policy
   - Cloud Run Job
+  - Cloud Scheduler
+  - Workload Identity Pool and Provider
 
   No variables can be found in this project. 
   Security is a priority, so the service accounts are created with the minimum permissions required.
@@ -135,4 +137,50 @@ resource "google_cloud_scheduler_job" "urls_scrapper_workflow_scheduler" {
   }
 
   depends_on = [ module.super_dev_job ]
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 🟢 Workload Identity Provider module
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "workload_identity_provider" {
+  source = "../../modules/workload-identity-provider"
+
+  project_id                        = var.project_id
+  region                            = var.region
+  pool_name                         = var.pool_name
+  pool_description                  = var.pool_description
+  provider_name                     = var.provider_name
+  provider_description              = var.provider_description
+  assertion_condition               = var.assertion_condition
+  assertion_value                   = var.assertion_value
+  attribute_condition               = var.attribute_condition
+  workload_identity_provider_issuer = var.workload_identity_provider_issuer
+  service_account_roles             = var.workload_identity_provider_sa_roles
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 🟢 Secret output
+# ----------------------------------------------------------------------------------------------------------------------
+
+resource "google_secret_manager_secret" "workload_identity_pool_secret" {
+  project   = var.project_id
+  secret_id = "wip-secret"
+
+  replication {
+    auto {} 
+  } 
+
+  labels = {
+    app = "super-dev"
+  }
+
+  depends_on = [ module.workload_identity_provider ]
+}
+
+resource "google_secret_manager_secret_version" "workload_identity_pool_secret_version" {
+  secret      = google_secret_manager_secret.workload_identity_pool_secret.id
+  secret_data = module.workload_identity_provider.workload_identity_provider_name
+
+  depends_on = [google_secret_manager_secret.workload_identity_pool_secret]
 }
