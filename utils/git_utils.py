@@ -118,7 +118,31 @@ class GitUtils:
                 
         except subprocess.CalledProcessError as e:
             logger.error(f"Error while checking or creating branch: {e}")
-            raise     
+            raise 
+        
+    @staticmethod
+    def pull_branch(local_path: str, branch_name: str) -> None:
+        """
+        Pull the latest changes from a branch.
+        
+        Parameters
+        ----------
+        local_path : str
+            The local path of the repository.
+        branch_name : str
+            The name of the branch to pull from.
+        
+        Returns
+        -------
+        None
+        """
+        try:
+            logger.info(f"Pulling latest changes from branch '{branch_name}'...")
+            GitUtils.run_command(["git", "pull", "origin", branch_name], cwd=local_path)
+            logger.info(f"Latest changes pulled from branch '{branch_name}'.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error while pulling branch: {e}")
+            raise    
         
     @staticmethod
     def add_commit_push(local_path: str, commit_message: str, branch_name: str) -> None:
@@ -254,4 +278,68 @@ class GitUtils:
             return response.json()
         else:
             logger.error(f"Failed to merge pull request: {response.status_code} - {response.text}")
+            response.raise_for_status()
+            
+    @staticmethod
+    def delete_branch(local_path: str, branch_name: str) -> None:
+        """
+        Delete a branch in the local repository.
+        
+        Parameters
+        ----------
+        local_path : str
+            The local path of the repository.
+        branch_name : str
+            The name of the branch to delete.
+            
+        Returns
+        -------
+        None
+        """
+        try:
+            logger.info(f"Deleting branch '{branch_name}'...")
+            GitUtils.run_command(["git", "branch", "-D", branch_name], cwd=local_path)
+            logger.info(f"Branch '{branch_name}' deleted.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error while deleting branch: {e}")
+            raise
+        
+    @staticmethod
+    def delete_remote_branch(
+            repo_owner: str, 
+            repo_name: str, 
+            branch_name: str, 
+            github_token: str
+        ) -> None:
+        """
+        Delete a remote branch from a GitHub repository.
+
+        Parameters
+        ----------
+        repo_owner : str
+            The owner of the repository.
+        repo_name : str
+            The name of the repository.
+        branch_name : str
+            The name of the branch to delete (e.g., "feat/my-feature").
+        github_token : str
+            The GitHub Personal Access Token for authentication.
+
+        Returns
+        -------
+        None
+        """
+        url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/git/refs/heads/{branch_name}"
+        headers = {
+            "Authorization": f"Bearer {github_token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+
+        response = requests.delete(url, headers=headers)
+        if response.status_code == 204:
+            logger.info(f"Branch '{branch_name}' deleted successfully from remote repository.")
+        elif response.status_code == 404:
+            logger.error(f"Branch '{branch_name}' not found in the repository.")
+        else:
+            logger.error(f"Failed to delete branch '{branch_name}': {response.status_code} - {response.text}")
             response.raise_for_status()

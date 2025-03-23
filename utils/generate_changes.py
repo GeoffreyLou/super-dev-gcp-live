@@ -93,70 +93,12 @@ class GenerateChanges:
         try:
             sentences = []
             for _ in range(number_of_sentences):
-                commit_message = Faker().sentence(nb_words=8)
+                commit_message = f":rocket: feat: {Faker().sentence(nb_words=6)}"
                 sentences.append(commit_message)
             return sentences
         except Exception as e:
             logger.error(f"An error occurred while generating sentences: {e}")
 
-    def clone_repository(self) -> None:
-        """
-        Clone the repository if it does not exist.
-        
-        Returns
-        -------
-        None
-        """
-        try:
-            GitUtils.git_authenticate(
-                repository_url=self.repository_url, 
-                local_path=self.data_folder, 
-                github_access_token=self.github_access_token
-            )
-        except Exception as e:
-            logger.error(f"An error occurred: {e}")
-            raise
-
-    def change_git_branch(self) -> None:
-        """
-        Change the branch of the repository.
-        
-        Returns
-        -------
-        None
-        """
-        try:
-            GitUtils.git_check_or_create_branch(
-                local_path=self.data_folder, 
-                branch_name=self.source_branch
-            )
-        except Exception as e:
-            logger.error(f"An error occurred: {e}")
-            raise
-        
-    def commit_changes(self, string_list: list) -> None:
-        """
-        Commit the changes to the repository.
-        
-        Parameters
-        ----------
-        string_list : list
-            The list of strings to commit.
-        
-        Returns
-        -------
-        None
-        """
-        try:
-            for string in string_list:
-                self.file_path.write_text(string)
-                GitUtils.git_add_commit_push(
-                    local_path=self.data_folder, 
-                    commit_message=string,
-                    branch_name=self.source_branch
-                )
-        except Exception as e:
-            logger.error(f"An error occurred: {e}")
 
     def generate_changes(self) -> None:
         """
@@ -182,7 +124,19 @@ class GenerateChanges:
                     user_email=self.user_email
                 )
                 
-                # Change the branch
+                # Change the branch to develop (target branch)
+                GitUtils.check_or_create_branch(
+                    local_path=self.data_folder, 
+                    branch_name=self.target_branch
+                )
+                
+                # Pull
+                GitUtils.pull_branch(
+                    local_path=self.data_folder, 
+                    branch_name=self.target_branch
+                )
+                
+                # Create source branch
                 GitUtils.check_or_create_branch(
                     local_path=self.data_folder, 
                     branch_name=self.source_branch
@@ -195,12 +149,22 @@ class GenerateChanges:
                 
                 # Commit each sentence written in the file
                 for string in sentences:
-                    self.file_path.write_text(string)
+                    with self.file_path.open("a") as f:
+                        f.write(string)
                     GitUtils.add_commit_push(
                         local_path=self.data_folder, 
                         commit_message=string,
                         branch_name=self.source_branch
                     )
+                    
+                # clear the file to avoir conflicts
+                with self.file_path.open("w") as f:
+                    f.write("")
+                GitUtils.add_commit_push(
+                    local_path=self.data_folder, 
+                    commit_message=":rocket: feat: clear file",
+                    branch_name=self.source_branch
+                )
                 
                 # Create a pull request
                 pr = GitUtils.create_pull_request(
@@ -218,6 +182,45 @@ class GenerateChanges:
                     repo_owner=self.repository_owner,
                     repo_name=self.repository_name,
                     pull_number=pr["number"],
+                    github_token=self.github_access_token
+                )
+                
+                # Change the branch to develop (target branch)
+                GitUtils.check_or_create_branch(
+                    local_path=self.data_folder, 
+                    branch_name=self.target_branch
+                )              
+                
+                # Delete branch
+                GitUtils.delete_branch(
+                    local_path=self.data_folder, 
+                    branch_name=self.source_branch
+                )
+                
+                # Create a pull request to merge develop into main
+                final_pr = GitUtils.create_pull_request(
+                    repo_owner=self.repository_owner,
+                    repo_name=self.repository_name,
+                    source_branch=self.target_branch,
+                    target_branch="main",
+                    title=":rocket: Super Dev is working hard today!",
+                    body=f"I'm proud, I commited {self.number_of_commits} changes today.",
+                    github_token=self.github_access_token
+                )
+                
+                # Merge the pull request
+                GitUtils.merge_pull_request(
+                    repo_owner=self.repository_owner,
+                    repo_name=self.repository_name,
+                    pull_number=final_pr["number"],
+                    github_token=self.github_access_token
+                )
+                
+                # Delete remote branch
+                GitUtils.delete_remote_branch(
+                    repo_owner=self.repository_owner,
+                    repo_name=self.repository_name,
+                    branch_name=self.source_branch,
                     github_token=self.github_access_token
                 )
                 
