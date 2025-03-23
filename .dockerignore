@@ -1,0 +1,8 @@
+# Ignore not useful files
+.git
+terraform/
+.env
+data/
+delete.sh
+deploy.sh
+.DS_Store

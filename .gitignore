@@ -14,6 +14,7 @@ delete.sh
 deploy.sh
 .env
 data/
+.DS_Store
 
 # Terraform 
 .terraform 
