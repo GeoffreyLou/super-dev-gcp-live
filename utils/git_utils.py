@@ -5,7 +5,7 @@ from loguru import logger
 class GitUtils:
     
     @staticmethod
-    def run_command(command, cwd=None) -> str:
+    def run_command(command, cwd: str) -> str:
         """
         Execute a shell command and return the output if required.
         
@@ -29,7 +29,7 @@ class GitUtils:
             raise
 
     @staticmethod
-    def git_authenticate(repository_url, local_path, github_access_token) -> None:
+    def clone_repository(repository_url: str, local_path: str,github_access_token: str) -> None:
         """
         Clone a Git repository with authentication.
         
@@ -62,9 +62,33 @@ class GitUtils:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error while cloning the repository: {e}.")
             raise
+        
+    @staticmethod
+    def config_user(local_path: str, user_email: str) -> None:
+        """
+        Configure the Git user name and email.
+        
+        Parameters
+        ----------
+        local_path : str
+            The local path of the repository.
+        user_email : str
+            The email of the user.
+        
+        Returns
+        -------
+        None
+        """
+        try:
+            logger.info("Configuring Git user...")
+            GitUtils.run_command(["git", "config", "--global", "user.name", "Super-dev"], cwd=local_path)
+            GitUtils.run_command(["git", "config", "--global", "user.email", user_email], cwd=local_path)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error while configuring Git user: {e}.")
+            raise
 
     @staticmethod
-    def git_check_or_create_branch(local_path, branch_name) -> None:
+    def check_or_create_branch(local_path: str, branch_name: str) -> None:
         """
         Check if a branch exists in the local repository, and create it if it doesn't exist.
         
@@ -97,7 +121,7 @@ class GitUtils:
             raise     
         
     @staticmethod
-    def git_add_commit_push(local_path, commit_message, branch_name) -> None:
+    def add_commit_push(local_path: str, commit_message: str, branch_name: str) -> None:
         """
         Add, commit and push changes to the local repository.
         
