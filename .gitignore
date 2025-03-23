@@ -14,3 +14,10 @@ delete.sh
 deploy.sh
 .env
 data/
+
+# Terraform 
+.terraform 
+.terraform.*
+terraform.*
+backend.tf
+terraform.tfvars
