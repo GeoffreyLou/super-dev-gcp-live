@@ -34,6 +34,11 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
+      - name: Display github author
+        run: |
+          echo "GITHUB_ACTOR: $GITHUB_ACTOR"
+          echo "ACTOR: ${{ github.actor }}"
+
       - name: Auth to GCP
         id: get_gcp_access_token
         uses: 'google-github-actions/auth@v2'
