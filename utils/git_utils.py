@@ -230,8 +230,16 @@ class GitUtils:
 
         response = requests.post(url, headers=headers, json=data)
         if response.status_code == 201:
-            logger.info(f"Pull request created successfully: {response.json().get('html_url')}")
-            return response.json()
+            pr = response.json()
+            pr_number = pr["number"]
+
+            # Add a label to the PR
+            label_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{pr_number}/labels"
+            label_data = {"labels": ["skip-ci"]}
+            requests.post(label_url, headers=headers, json=label_data)
+
+            logger.info(f"Pull request created successfully: {pr.get('html_url')}")
+            return pr
         else:
             logger.error(f"Failed to create pull request: {response.status_code} - {response.text}")
             response.raise_for_status()
