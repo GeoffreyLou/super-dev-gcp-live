@@ -11,7 +11,7 @@ on:
 
 jobs:
   terraform_plan:
-    if: {{ !contains(github.event.pull_request.labels.*.name, 'skpi-ci') }}
+    if: contains(github.event.pull_request.labels.*.name, 'skip-ci') == false
     name: Terraform plan
 
     runs-on: ubuntu-latest
