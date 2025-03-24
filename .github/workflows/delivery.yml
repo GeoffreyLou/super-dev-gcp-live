@@ -9,7 +9,7 @@ on:
 
 jobs:
   terraform_apply:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'skip-ci') == false
     name: Terraform apply
 
     runs-on: ubuntu-latest
