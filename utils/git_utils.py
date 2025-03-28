@@ -64,7 +64,7 @@ class GitUtils:
             raise
         
     @staticmethod
-    def config_user(local_path: str) -> None:
+    def config_user(local_path: str, user_email: str) -> None:
         """
         Configure the Git user name and email.
         
@@ -82,7 +82,7 @@ class GitUtils:
         try:
             logger.info("Configuring Git user...")
             GitUtils.run_command(["git", "config", "--global", "user.name", "Super-dev"], cwd=local_path)
-            GitUtils.run_command(["git", "config", "--global", "user.email", "Super-dev@users.noreply.github.com"], cwd=local_path)
+            GitUtils.run_command(["git", "config", "--global", "user.email", user_email], cwd=local_path)
         except subprocess.CalledProcessError as e:
             logger.error(f"Error while configuring Git user: {e}.")
             raise

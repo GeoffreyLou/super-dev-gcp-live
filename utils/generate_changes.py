@@ -17,6 +17,7 @@ class GenerateChanges:
             data_folder_name: str, 
             data_file_name: str,
             repository_url: str,
+            user_email: str,
             github_access_token: str,
             repository_owner:str,
             repository_name:str,
@@ -36,6 +37,8 @@ class GenerateChanges:
             Be careful, the .txt extension will be added automatically.
         repository_url : str
             The URL of the Git repository of this project.
+        user_email : str
+            The email of the user who will be used to commit the changes.
         github_access_token : str
             The personal access token for authentication.
         repository_owner : str
@@ -48,21 +51,18 @@ class GenerateChanges:
             The target branch of the repository e.g. "develop".
         prod_branch : str
             The production branch of the repository e.g. "main".
-            
-        Returns
-        -------
-        None
         """
+        self.number_of_commits = random.randint(0, 10)
+        self.data_folder = Path(data_folder_name)
+        self.file_path = self.data_folder / f"{data_file_name}.txt"
         self.repository_url = repository_url
+        self.user_email = user_email
         self.github_access_token = github_access_token
         self.repository_owner=repository_owner
         self.repository_name=repository_name
         self.source_branch=source_branch
         self.target_branch=target_branch
         self.prod_branch=prod_branch
-        self.data_folder = Path(data_folder_name)
-        self.file_path = self.data_folder / f"{data_file_name}.txt"
-        self.number_of_commits = random.randint(0, 10)
         
     def __is_new_month(self, date: datetime) -> bool:
         """
@@ -101,7 +101,10 @@ class GenerateChanges:
             local_path=self.data_folder, 
             github_access_token=self.github_access_token
         )
-        GitUtils.config_user(local_path=self.data_folder)
+        GitUtils.config_user(
+            local_path=self.data_folder,
+            user_email=self.user_email
+        )
 
     def __setup_branches(self) -> None:
         """

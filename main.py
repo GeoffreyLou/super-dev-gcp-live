@@ -12,6 +12,7 @@ if __name__ == "__main__":
     data_folder_name=os.getenv("DATA_FOLDER_NAME")
     data_file_name=os.getenv("DATA_FILE_NAME")
     repository_url=os.getenv("REPOSITORY_URL")
+    user_email=os.getenv("USER_EMAIL")
     github_access_token=os.getenv("GITHUB_ACCESS_TOKEN")
     source_branch=os.getenv("SOURCE_BRANCH")
     target_branch=os.getenv("TARGET_BRANCH")
@@ -25,6 +26,7 @@ if __name__ == "__main__":
             data_folder_name=data_folder_name,
             data_file_name=data_file_name,
             repository_url=repository_url,
+            user_email=user_email,
             github_access_token=github_access_token,
             repository_owner=repository_owner,
             repository_name=repository_name,
