@@ -64,7 +64,7 @@ class GenerateChanges:
         self.file_path = self.data_folder / f"{data_file_name}.txt"
         self.number_of_commits = random.randint(0, 10)
         
-    def __is_new_month(date: datetime) -> bool:
+    def __is_new_month(self, date: datetime) -> bool:
         """
         Check if the given date is the first day of the month.
         
