@@ -67,6 +67,11 @@ variable "target_branch" {
   type        = string
 }
 
+variable "prod_branch" {
+  description = "The branch to merge the target_branch in the Cloud Run Job"
+  type        = string
+}
+
 variable "scheduler_name" {
   description = "The name of the Cloud Scheduler Job"
   type        = string
