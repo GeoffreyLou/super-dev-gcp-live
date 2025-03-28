@@ -99,11 +99,11 @@ module "super_dev_job" {
     { name  = "REPOSITORY_NAME",  value = var.repository_name },
     { name  = "SOURCE_BRANCH",    value = var.source_branch },
     { name  = "TARGET_BRANCH",    value = var.target_branch },
+    { name  = "PROD_BRANCH",    value = var.prod_branch },
   ]
 
    secret_env_vars                   = [ 
-    { name  = "GITHUB_ACCESS_TOKEN", secret_name = "projects/${var.project_id}/secrets/github-repo-token" },
-    { name  = "USER_EMAIL",          secret_name = "projects/${var.project_id}/secrets/github-user-email" },
+    { name  = "GITHUB_ACCESS_TOKEN", secret_name = "projects/${var.project_id}/secrets/github-repo-token" }
   ]
 
   depends_on = [ google_project_service.project_apis ]

@@ -1,13 +1,14 @@
 import random
 from faker import Faker
-from loguru import logger
 from pathlib import Path
-from .git_utils import GitUtils
+from loguru import logger
+from datetime import datetime
+from utils.git_utils import GitUtils
+
 
 class GenerateChanges: 
     """
     Generate random sentence in a file from 0 to 10 times.
-    The sentence will allways overwrite the previous one.
     Each sentence is a commit message and will do a commit to a Github repository.
     """
     
@@ -17,11 +18,11 @@ class GenerateChanges:
             data_file_name: str,
             repository_url: str,
             github_access_token: str,
-            user_email: str,
             repository_owner:str,
             repository_name:str,
             source_branch:str,
-            target_branch:str
+            target_branch:str,
+            prod_branch:str
         ) -> None: 
         """
         Constructor of the GenerateChanges class.
@@ -32,21 +33,21 @@ class GenerateChanges:
             The name of the folder where the file will be saved.
         data_file_name : str
             The name of the file where the commit messages will be saved.
-            Be careuful, the .txt extension will be added automatically.
+            Be careful, the .txt extension will be added automatically.
         repository_url : str
             The URL of the Git repository of this project.
         github_access_token : str
             The personal access token for authentication.
-        user_email : str
-            The email of the user to commit the changes.
         repository_owner : str
             The owner of the repository.
         repository_name : str
             The name of the repository.
         source_branch : str
-            The source branch of the repository.
+            The source branch of the repository e.g. "feature/branch_name".
         target_branch : str
-            The target branch of the repository.
+            The target branch of the repository e.g. "develop".
+        prod_branch : str
+            The production branch of the repository e.g. "main".
             
         Returns
         -------
@@ -54,28 +55,27 @@ class GenerateChanges:
         """
         self.repository_url = repository_url
         self.github_access_token = github_access_token
-        self.user_email = user_email
         self.repository_owner=repository_owner
         self.repository_name=repository_name
         self.source_branch=source_branch
         self.target_branch=target_branch
+        self.prod_branch=prod_branch
         self.data_folder = Path(data_folder_name)
         self.file_path = self.data_folder / f"{data_file_name}.txt"
-        self.number_of_commits = random.randint(0, 8)
+        self.number_of_commits = random.randint(0, 10)
         
-    def _will_i_work_today(self) -> bool:
+    def __is_new_month(date: datetime) -> bool:
         """
-        Check if the developer will work today.
-        The number of commits must be greater than 0.
+        Check if the given date is the first day of the month.
         
         Returns
         -------
         bool
-            True if the developer will work today, False otherwise.
+            True if the date is the first day of the month, False otherwise.
         """
-        return True if self.number_of_commits > 0 else False 
+        return date.day == 1
     
-    def generate_sentences(self, number_of_sentences: int) -> list:
+    def __generate_sentences(self, number_of_sentences: int) -> list:
         """
         Generate random sentence in a list according to number passed as parameter.
         
@@ -89,144 +89,133 @@ class GenerateChanges:
         list
             The list of sentences.
         """
+        faker = Faker()
+        return [f":rocket: feat: {faker.sentence(nb_words=6)}" for _ in range(number_of_sentences)]
+        
+    def __clone_and_configure(self) -> None:
+        """
+        Clone the repository and configure Git.
+        """
+        GitUtils.clone_repository(
+            repository_url=self.repository_url, 
+            local_path=self.data_folder, 
+            github_access_token=self.github_access_token
+        )
+        GitUtils.config_user(local_path=self.data_folder)
 
-        try:
-            sentences = []
-            for _ in range(number_of_sentences):
-                commit_message = f":rocket: feat: {Faker().sentence(nb_words=6)}"
-                sentences.append(commit_message)
-            return sentences
-        except Exception as e:
-            logger.error(f"An error occurred while generating sentences: {e}")
-
-
+    def __setup_branches(self) -> None:
+        """
+        Set up the target and source branches.
+        """
+        GitUtils.check_or_create_branch(
+            local_path=self.data_folder, 
+            branch_name=self.target_branch
+        )
+        GitUtils.pull_branch(
+            local_path=self.data_folder, 
+            branch_name=self.target_branch
+        )
+        GitUtils.check_or_create_branch(
+            local_path=self.data_folder, 
+            branch_name=self.source_branch
+        )       
+        
+    def __generate_and_commit(self) -> None:
+        """
+        Generate sentences and commit them.
+        """
+        sentences = self.__generate_sentences(self.number_of_commits)
+        for sentence in sentences:
+            with self.file_path.open("a") as f:
+                f.write(sentence + "\n")
+            GitUtils.add_commit_push(
+                local_path=self.data_folder, 
+                commit_message=sentence, 
+                branch_name=self.source_branch
+        )     
+      
+    def __cleanup_file(self) -> None:
+        """
+        Clean up the file if it's the first day of the month.
+        """
+        if self.__is_new_month(datetime.now()):
+            with self.file_path.open("w") as f:
+                f.write("")
+            GitUtils.add_commit_push(
+                local_path=self.data_folder, 
+                commit_message=":rocket: feat: cleaned the file", 
+                branch_name=self.source_branch
+            )     
+        
+    def __create_and_merge_pr(
+            self, 
+            source_branch: str,
+            target_branch: str, 
+            title: str, 
+            body: str
+        ) -> None:
+        """
+        Create and merge a pull request.
+        
+        Parameters
+        ----------
+        source_branch : str
+            The source branch of the pull request e.g. "feature/branch_name".
+        target_branch : str
+            The target branch of the pull request e.g. "develop".
+        title : str
+            The title of the pull request.
+        body : str
+            The body of the pull request.
+        """
+        pr = GitUtils.create_pull_request(
+            repo_owner=self.repository_owner, 
+            repo_name=self.repository_name, 
+            source_branch=source_branch, 
+            target_branch=target_branch, 
+            title=title,
+            body=body, 
+            github_access_token=self.github_access_token
+        )
+        GitUtils.merge_pull_request(
+            repo_owner=self.repository_owner, 
+            repo_name=self.repository_name, 
+            pull_number=pr["number"], 
+            github_access_token=self.github_access_token
+        )       
+  
     def generate_changes(self) -> None:
         """
-        Workflow to generate the changes in the repository.
-        If the developer will work today, the repository will be cloned.
-        The branch will be changed and the sentences will be generated and committed.
-        Each commit will be pushed. 
+        Workflow to generate changes in the repository.
         """
-      
-        if self._will_i_work_today():
-            logger.info("I'm a super developer, I may work hard today.")   
-        
+        if self.number_of_commits > 0:
+            logger.info("I'm a super developer, I may work hard today...")
             try:
-                # Clone the repository and config
-                GitUtils.clone_repository(
-                    repository_url=self.repository_url, 
-                    local_path=self.data_folder, 
-                    github_access_token=self.github_access_token
-                )
-                
-                GitUtils.config_user(
-                    local_path=self.data_folder,
-                    user_email=self.user_email
-                )
-                
-                # Change the branch to develop (target branch)
-                GitUtils.check_or_create_branch(
-                    local_path=self.data_folder, 
-                    branch_name=self.target_branch
-                )
-                
-                # Pull
-                GitUtils.pull_branch(
-                    local_path=self.data_folder, 
-                    branch_name=self.target_branch
-                )
-                
-                # Create source branch
-                GitUtils.check_or_create_branch(
-                    local_path=self.data_folder, 
-                    branch_name=self.source_branch
-                )
-
-                # Generate sentences according to number of commits
-                sentences = self.generate_sentences(
-                    number_of_sentences=self.number_of_commits
-                )
-                
-                # Commit each sentence written in the file
-                for string in sentences:
-                    with self.file_path.open("a") as f:
-                        f.write(string)
-                    GitUtils.add_commit_push(
-                        local_path=self.data_folder, 
-                        commit_message=string,
-                        branch_name=self.source_branch
-                    )
-                    
-                # clear the file to avoir conflicts
-                with self.file_path.open("w") as f:
-                    f.write("")
-                GitUtils.add_commit_push(
-                    local_path=self.data_folder, 
-                    commit_message=":rocket: feat: clear file",
-                    branch_name=self.source_branch
-                )
-                
-                # Create a pull request
-                pr = GitUtils.create_pull_request(
-                    repo_owner=self.repository_owner,
-                    repo_name=self.repository_name,
-                    source_branch=self.source_branch,
+                self.__clone_and_configure()
+                self.__setup_branches()
+                self.__cleanup_file()
+                self.__generate_and_commit()
+                self.__create_and_merge_pr(
+                    source_branch=self.source_branch, 
                     target_branch=self.target_branch,
                     title=":rocket: Super Dev is working hard today!",
-                    body=f"I'm proud, I commited {self.number_of_commits} changes today.",
-                    github_token=self.github_access_token
+                    body=f"I'm proud, I committed {self.number_of_commits} changes today."
                 )
-                
-                # Merge the pull request
-                GitUtils.merge_pull_request(
-                    repo_owner=self.repository_owner,
-                    repo_name=self.repository_name,
-                    pull_number=pr["number"],
-                    github_token=self.github_access_token
+                self.__create_and_merge_pr(
+                    source_branch=self.target_branch, 
+                    target_branch=self.prod_branch,
+                    title=":rocket: Merging changes to main!",
+                    body="Incredible content in production because i'm a super developer!"
                 )
-                
-                # Change the branch to develop (target branch)
-                GitUtils.check_or_create_branch(
-                    local_path=self.data_folder, 
-                    branch_name=self.target_branch
-                )              
-                
-                # Delete branch
-                GitUtils.delete_branch(
-                    local_path=self.data_folder, 
-                    branch_name=self.source_branch
-                )
-                
-                # Create a pull request to merge develop into main
-                final_pr = GitUtils.create_pull_request(
-                    repo_owner=self.repository_owner,
-                    repo_name=self.repository_name,
-                    source_branch=self.target_branch,
-                    target_branch="main",
-                    title=":rocket: Super Dev is working hard today!",
-                    body=f"I'm proud, I commited {self.number_of_commits} changes today.",
-                    github_token=self.github_access_token
-                )
-                
-                # Merge the pull request
-                GitUtils.merge_pull_request(
-                    repo_owner=self.repository_owner,
-                    repo_name=self.repository_name,
-                    pull_number=final_pr["number"],
-                    github_token=self.github_access_token
-                )
-                
-                # Delete remote branch
                 GitUtils.delete_remote_branch(
-                    repo_owner=self.repository_owner,
-                    repo_name=self.repository_name,
-                    branch_name=self.source_branch,
-                    github_token=self.github_access_token
+                    repo_owner=self.repository_owner, 
+                    repo_name=self.repository_name, 
+                    branch_name=self.source_branch, 
+                    github_access_token=self.github_access_token
                 )
-                
-                logger.success(f'I worked hard today with {self.number_of_commits} commits.')
+                logger.success(f"Workflow completed successfully with {self.number_of_commits} commits.")
             except Exception as e:
-                logger.error(f"An error occurred: {e}")
+                logger.error(f"An error occurred during the workflow: {e}")
                 raise
-        else: 
-            logger.info("I'm a lazy developer, I may work tomorrow.")
+        else:
+            logger.info("I'm a lazy developer because I did not work on my rest day.")

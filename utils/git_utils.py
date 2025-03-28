@@ -64,7 +64,7 @@ class GitUtils:
             raise
         
     @staticmethod
-    def config_user(local_path: str, user_email: str) -> None:
+    def config_user(local_path: str) -> None:
         """
         Configure the Git user name and email.
         
@@ -189,7 +189,7 @@ class GitUtils:
             target_branch:str, 
             title:str, 
             body:str, 
-            github_token:str
+            github_access_token:str
         ) -> dict:
         """
         Create a pull request on GitHub.
@@ -208,7 +208,7 @@ class GitUtils:
             The title of the pull request.
         body : str
             The body/description of the pull request.
-        github_token : str
+        github_access_token : str
             The GitHub Personal Access Token for authentication.
 
         Returns
@@ -218,7 +218,7 @@ class GitUtils:
         """
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls"
         headers = {
-            "Authorization": f"Bearer {github_token}",
+            "Authorization": f"Bearer {github_access_token}",
             "Accept": "application/vnd.github.v3+json"
         }
         data = {
@@ -249,7 +249,7 @@ class GitUtils:
             repo_owner: str, 
             repo_name: str, 
             pull_number: int, 
-            github_token: str
+            github_access_token: str
         ) -> dict:
         """
         Merge a pull request on GitHub.
@@ -262,7 +262,7 @@ class GitUtils:
             The name of the repository.
         pull_number : int
             The number of the pull request to merge.
-        github_token : str
+        github_access_token : str
             The GitHub Personal Access Token for authentication.
 
         Returns
@@ -272,7 +272,7 @@ class GitUtils:
         """
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls/{pull_number}/merge"
         headers = {
-            "Authorization": f"Bearer {github_token}",
+            "Authorization": f"Bearer {github_access_token}",
             "Accept": "application/vnd.github.v3+json"
         }
         data = {
@@ -317,7 +317,7 @@ class GitUtils:
             repo_owner: str, 
             repo_name: str, 
             branch_name: str, 
-            github_token: str
+            github_access_token: str
         ) -> None:
         """
         Delete a remote branch from a GitHub repository.
@@ -330,7 +330,7 @@ class GitUtils:
             The name of the repository.
         branch_name : str
             The name of the branch to delete (e.g., "feat/my-feature").
-        github_token : str
+        github_access_token : str
             The GitHub Personal Access Token for authentication.
 
         Returns
@@ -339,7 +339,7 @@ class GitUtils:
         """
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/git/refs/heads/{branch_name}"
         headers = {
-            "Authorization": f"Bearer {github_token}",
+            "Authorization": f"Bearer {github_access_token}",
             "Accept": "application/vnd.github.v3+json"
         }
 
