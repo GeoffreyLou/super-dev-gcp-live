@@ -103,7 +103,8 @@ module "super_dev_job" {
   ]
 
    secret_env_vars                   = [ 
-    { name  = "GITHUB_ACCESS_TOKEN", secret_name = "projects/${var.project_id}/secrets/github-repo-token" }
+    { name  = "GITHUB_ACCESS_TOKEN", secret_name = "projects/${var.project_id}/secrets/github-repo-token" },
+    { name  = "USER_EMAIL", secret_name = "projects/${var.project_id}/secrets/github-user-email" },
   ]
 
   depends_on = [ google_project_service.project_apis ]
