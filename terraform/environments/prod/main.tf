@@ -99,7 +99,7 @@ module "super_dev_job" {
     { name  = "REPOSITORY_NAME",  value = var.repository_name },
     { name  = "SOURCE_BRANCH",    value = var.source_branch },
     { name  = "TARGET_BRANCH",    value = var.target_branch },
-    { name  = "PROD_BRANCH",    value = var.prod_branch },
+    { name  = "PROD_BRANCH",      value = var.prod_branch },
   ]
 
    secret_env_vars                   = [ 
