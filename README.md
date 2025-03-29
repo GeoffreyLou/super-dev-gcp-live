@@ -1,114 +1,45 @@
 # :rocket: Super Dev project 
 
-## :sparkles: Purpose
+Super Dev is a a comedy project about what some people think a developer should do: code in almost all his spare time, outside work, including weekends and vacations. 
 
-TODO : purpose
+To affirm that a developer is good, he has a lot of GitHub activity no matter how much code he produces. 
 
-## Project cost
+Let me introduce you to **Super Dev**, an automated project deployed on GCP that generates commits every day. 
 
-TODO : cost
+## :construction_worker: Architecture
 
-## Repository dependancies installation
+![Super Dev global architecture](images/super_dev.png)
 
-This repository uses `uv`, a Python packaging extremly fast. For more documentation about this, [click here](https://docs.astral.sh/uv/). These steps are not required if you don't plan to change the code, you can skip to [Deploy in Google Cloud Platform (GCP) section](#deploy-in-google-cloud-platform-gcp).
-<br/>
+## 🤔 How it works
 
-**On Windows**
+Every day at **10:00 UTC**:
+- A Cloud Scheduler triggers the main script.
+- Git repository cloned, user configured, pull `develop` branch.
+- A `feat/super-dev` branch is created from `develop`.
+- A random number between 0 and 10 commits are made in the form of sentences added to a repository file `changes.txt`.
+- Each sentence is commited and pushed to generate activity on the Github profile.
+- A pull request is created then merged from `feat/super-dev` to `develop`.
+- A pull request is created then merges from `develop` to `main`.
+- The remote branch `feat/super-dev` is deleted.
 
-Open Powershell as administrator and run the following command: 
+Bonus:
+- Each 1st of the month, the file `changes.txt` is cleaned to stay with a light repository.
+- The gitflow triggered by the script will not trigger the CI/CD by using a label on pull request.
 
-```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-<br/>
+## :money_with_wings: Project cost
 
-**On macOS and Linux**
+From **0€** to **0.118€** each month.
 
-Open a terminal and run the following command: 
+The project uses only two resources on GCP:
+- **Cloud Scheduler Job**: lifetime free-tier of 3 free Cloud Scheduler Job related to billing account, if you have more it's 0.10€ per job.
+- **Cloud Run Job**: this script is pure Python, the resource have the lowest configuration (0.5 vCPU, 0.5 GiB). The duration is less than one minute but GCP will bill one minute for each run. For one run a day each month, it will be approximatively 900 vCPU-seconds/moonth and 900 GiB-seconds/month, way below thant the free tier: 240000 vCPU-seconds/month and 450000 GiB-seconds/month. 
 
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+If your billing account is no more on free tier for both resources, it will cost: 
+- **Cloud Scheduler Job**: 0.10€ / month
+- **Cloud Run Job**: 0.018€ / month
 
-If your system doesn't have `curl`, use `wget`:
 
-```bash
-wget -qO- https://astral.sh/uv/install.sh | sh
-```
-<br/>
+## 💡 What's next ? 
 
-> [!IMPORTANT]
-> Before going further, be sure that `uv` is in the PATH.  
-<br/>
-
-**Create virtual environment and activate it**
-
- Run the following command: 
-
-```bash
-uv sync
-```
-<br/>
-
-**On Windows**
-
-Open Powershell and run the following command: 
-
-```powershell
-.\.venv\Scripts\activate
-```
-<br>
-
-**On macOS and Linux**
-
-Open a terminal and run the following command:
-
-```
-source .venv/bin/activate
-```
-<br>
-
-## Deploy in Google Cloud Platform (GCP)
-<a name="gcp-deployment"></a>
-
-To deploy in GCP, you'll need to create a personal Github Access Token (that will be stored in GCP Secret). 
-
-The following resources will be created:
-- One GCP Secret
-- One Service Account with roles
-- One Artifact Registry
-- One Cloud Run Job
-- One Cloud Scheduler
-
-We'll assume you deploy this project in prod environment. We'll use `env=prod` for labels when it's possible. 
-
-```shell
-GITHUB_ACCESS_TOKEN=""
-PROJECT_ID=""
-REPOSITORY_URL=""
-SECRET_NAME="super-dev-github-access-token"
-JOB_NAME="super-dev-job"
-REGION="europe-west9"
-ENV="prod"
-
-echo "$GITHUB_ACCESS_TOKEN" | \
-gcloud secrets create $SECRET_NAME \
-  --project $PROJECT_ID \
-  --data-file=- \
-  --replication-policy="automatic" \
-  --labels env=$ENV
-
-gcloud artifacts repositories create super-dev-repository \
-  --location $REGION \
-  --description "Super Dev Docker Images Repository" \
-  -- repository-format DOCKER
-
-docker build -t "$REGION-docker.pkg.dev/$PROJECT_ID/super-dev-repository/super-dev:latest" .
-docker push "$REGION-docker.pkg.dev/$PROJECT_ID/super-dev-repository/super-dev:latest" .
-
-gcloud run jobs create $JOB_NAME \
-  --project $PROJECT_ID \
-  --image "$REGION-docker.pkg.dev/$PROJECT_ID/super-dev-repository/super-dev:latest" \
-  --set-env-vars REPOSITORY_URL=$REPOSITORY_URL \
-  --set-secrets GITHUB_ACCESS_TOKEN=$SECRET_NAME:latest
-```
+What will be added to this repository?
+- Tests with `pytest`
