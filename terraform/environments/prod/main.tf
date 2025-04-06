@@ -84,6 +84,8 @@ module "super_dev_job" {
   env                                = var.env
   region                             = var.region
   job_name                           = var.cloud_run_job_name
+  cpu                                = "1"
+  memory                             = "512Mi"
   deletion_protection                = false
   labels                             = { app = "super-dev" }
   sa_roles                           = [ 

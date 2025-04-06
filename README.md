@@ -28,15 +28,15 @@ Bonus:
 
 ## :money_with_wings: Project cost
 
-From **0€** to **0.118€** each month.
+From **0€** to **0.141€** each month.
 
 The project uses only two resources on GCP:
 - **Cloud Scheduler Job**: lifetime free-tier of 3 free Cloud Scheduler Job related to billing account, if you have more it's 0.10€ per job.
-- **Cloud Run Job**: this script is pure Python, the resource have the lowest configuration (0.5 vCPU, 0.5 GiB). The duration is less than one minute but GCP will bill one minute for each run. For one run a day each month, it will be approximatively 900 vCPU-seconds/moonth and 900 GiB-seconds/month, way below thant the free tier: 240000 vCPU-seconds/month and 450000 GiB-seconds/month. 
+- **Cloud Run Job**: this script is pure Python, the resource have the lowest configuration (1 CPU, 0.5 GiB). The duration is less than one minute but GCP will bill one minute for each run. For one run a day each month, it will be approximatively 1800 vCPU-seconds/moonth and 900 GiB-seconds/month, way below thant the free tier: 240000 vCPU-seconds/month and 450000 GiB-seconds/month. 
 
 If your billing account is no more on free tier for both resources, it will cost: 
 - **Cloud Scheduler Job**: 0.10€ / month
-- **Cloud Run Job**: 0.018€ / month
+- **Cloud Run Job**: 0.041€ / month
 
 
 ## 💡 What's next ? 
