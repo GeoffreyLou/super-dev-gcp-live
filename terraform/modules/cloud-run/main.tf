@@ -52,6 +52,9 @@ resource "google_artifact_registry_repository" "main" {
   location      = var.region
   description   = "${var.job_name} Artifact Registry Repository in [${var.env}]"
   format        = "DOCKER"
+  labels = {
+    env = var.env
+  }
 
   cleanup_policies {
     id     = "keep-latest"
