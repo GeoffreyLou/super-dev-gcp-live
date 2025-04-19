@@ -34,7 +34,7 @@ if __name__ == "__main__":
             target_branch=target_branch,
             prod_branch=prod_branch
         )
-        changes.generate_changes()
+        changes.work_hard_workflow()
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         sys.exit(1)
