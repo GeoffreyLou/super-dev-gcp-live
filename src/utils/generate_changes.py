@@ -1,3 +1,4 @@
+import time
 import random
 from faker import Faker
 from pathlib import Path
@@ -51,18 +52,22 @@ class GenerateChanges:
             The target branch of the repository e.g. "develop".
         prod_branch : str
             The production branch of the repository e.g. "main".
+        timer : int
+            The time to wait before merging the pull request to avoid errors.
         """
-        self.number_of_commits = random.randint(0, 10)
-        self.data_folder = Path(data_folder_name)
+        project_root = Path(__file__).resolve().parent.parent
+        self.data_folder = project_root / data_folder_name
         self.file_path = self.data_folder / f"{data_file_name}.txt"
+        self.number_of_commits = random.randint(1, 20)
         self.repository_url = repository_url
         self.user_email = user_email
         self.github_access_token = github_access_token
-        self.repository_owner=repository_owner
-        self.repository_name=repository_name
-        self.source_branch=source_branch
-        self.target_branch=target_branch
-        self.prod_branch=prod_branch
+        self.repository_owner = repository_owner
+        self.repository_name = repository_name
+        self.source_branch = source_branch
+        self.target_branch = target_branch
+        self.prod_branch = prod_branch
+        self.timer = 2
         
     def __is_new_month(self, date: datetime) -> bool:
         """
@@ -96,11 +101,13 @@ class GenerateChanges:
         """
         Clone the repository and configure Git.
         """
+        logger.info("Cloning the repository...")
         GitUtils.clone_repository(
             repository_url=self.repository_url, 
             local_path=self.data_folder, 
             github_access_token=self.github_access_token
         )
+        logger.info("Configuring Git user...")
         GitUtils.config_user(
             local_path=self.data_folder,
             user_email=self.user_email
@@ -110,14 +117,17 @@ class GenerateChanges:
         """
         Set up the target and source branches.
         """
+        logger.info(f"Checking if {self.target_branch} exists...")
         GitUtils.check_or_create_branch(
             local_path=self.data_folder, 
             branch_name=self.target_branch
         )
+        logger.info(f"Pulling {self.target_branch} to have recent changes...")
         GitUtils.pull_branch(
             local_path=self.data_folder, 
             branch_name=self.target_branch
         )
+        logger.info(f"Creating {self.source_branch} from {self.target_branch}...")
         GitUtils.check_or_create_branch(
             local_path=self.data_folder, 
             branch_name=self.source_branch
@@ -129,8 +139,10 @@ class GenerateChanges:
         """
         sentences = self.__generate_sentences(self.number_of_commits)
         for sentence in sentences:
+            logger.info(f"Write and commit '{sentence}' to {self.source_branch}...")
             with self.file_path.open("a") as f:
                 f.write(sentence + "\n")
+                
             GitUtils.add_commit_push(
                 local_path=self.data_folder, 
                 commit_message=sentence, 
@@ -142,6 +154,7 @@ class GenerateChanges:
         Clean up the file if it's the first day of the month.
         """
         if self.__is_new_month(datetime.now()):
+            logger.info("It's the first day of the month, cleaning the file...")
             with self.file_path.open("w") as f:
                 f.write("")
             GitUtils.add_commit_push(
@@ -171,6 +184,7 @@ class GenerateChanges:
         body : str
             The body of the pull request.
         """
+        logger.info(f"Creating pull request from {source_branch} to {target_branch}...")
         pr = GitUtils.create_pull_request(
             repo_owner=self.repository_owner, 
             repo_name=self.repository_name, 
@@ -180,18 +194,32 @@ class GenerateChanges:
             body=body, 
             github_access_token=self.github_access_token
         )
+        logger.info(f'Waiting {self.timer} seconds for the pull request to be ready...')
+        time.sleep(self.timer)
         GitUtils.merge_pull_request(
             repo_owner=self.repository_owner, 
             repo_name=self.repository_name, 
             pull_number=pr["number"], 
             github_access_token=self.github_access_token
-        )       
+        )
+        
+    def __will_i_work_hard_today(self) -> bool:
+        """
+        Used to simulate a developer's mood.
+        The developer have 80% of chance to work hard today.
+        
+        Returns
+        -------
+        bool
+            True if the developer will work hard today, False otherwise.
+        """
+        return random.random() < 0.8
   
-    def generate_changes(self) -> None:
+    def work_hard_workflow(self) -> None:
         """
         Workflow to generate changes in the repository.
         """
-        if self.number_of_commits > 0:
+        if self.__will_i_work_hard_today():
             logger.info("I'm a super developer, I may work hard today...")
             try:
                 self.__clone_and_configure()
