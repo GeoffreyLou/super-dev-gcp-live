@@ -8,7 +8,7 @@ Let me introduce you to **Super Dev**, an automated project deployed on GCP that
 
 ## :construction_worker: Architecture
 
-![Super Dev global architecture](images/super_dev.png)
+![Super Dev global architecture](assets/super_dev.png)
 
 ## 🤔 How it works
 
