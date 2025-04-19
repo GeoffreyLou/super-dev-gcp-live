@@ -185,13 +185,25 @@ class GenerateChanges:
             repo_name=self.repository_name, 
             pull_number=pr["number"], 
             github_access_token=self.github_access_token
-        )       
+        )
+        
+    def __will_i_work_hard_today(self) -> bool:
+        """
+        Used to simulate a developer's mood.
+        The developer have 80% of chance to work hard today.
+        
+        Returns
+        -------
+        bool
+            True if the developer will work hard today, False otherwise.
+        """
+        return random.random() < 0.8
   
-    def generate_changes(self) -> None:
+    def work_hard_workflow(self) -> None:
         """
         Workflow to generate changes in the repository.
         """
-        if self.number_of_commits > 0:
+        if self.__will_i_work_hard_today():
             logger.info("I'm a super developer, I may work hard today...")
             try:
                 self.__clone_and_configure()
