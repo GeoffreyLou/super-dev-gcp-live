@@ -1,3 +1,4 @@
+import time
 import random
 from faker import Faker
 from pathlib import Path
@@ -51,6 +52,8 @@ class GenerateChanges:
             The target branch of the repository e.g. "develop".
         prod_branch : str
             The production branch of the repository e.g. "main".
+        timer : int
+            The time to wait before merging the pull request to avoid errors.
         """
         project_root = Path(__file__).resolve().parent.parent
         self.data_folder = project_root / data_folder_name
@@ -59,11 +62,12 @@ class GenerateChanges:
         self.repository_url = repository_url
         self.user_email = user_email
         self.github_access_token = github_access_token
-        self.repository_owner=repository_owner
-        self.repository_name=repository_name
-        self.source_branch=source_branch
-        self.target_branch=target_branch
-        self.prod_branch=prod_branch
+        self.repository_owner = repository_owner
+        self.repository_name = repository_name
+        self.source_branch = source_branch
+        self.target_branch = target_branch
+        self.prod_branch = prod_branch
+        self.timer = 2
         
     def __is_new_month(self, date: datetime) -> bool:
         """
@@ -190,6 +194,8 @@ class GenerateChanges:
             body=body, 
             github_access_token=self.github_access_token
         )
+        logger.info(f'Waiting {self.timer} seconds for the pull request to be ready...')
+        time.sleep(self.timer)
         GitUtils.merge_pull_request(
             repo_owner=self.repository_owner, 
             repo_name=self.repository_name, 
