@@ -65,6 +65,15 @@ resource "google_artifact_registry_repository" "main" {
       tag_prefixes = [ "latest" ]
     }
   }
+
+  cleanup_policies {
+    id     = "delete-untagged"
+    action = "DELETE"
+
+    condition {
+      tag_state    = "UNTAGGED"
+    }
+  }
 }
 
 
