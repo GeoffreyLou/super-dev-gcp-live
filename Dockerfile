@@ -11,4 +11,4 @@ RUN pip install uv
 RUN uv venv && uv sync
 ENV PATH="app/.venv/bin:$PATH"
 
-ENTRYPOINT ["uv", "run", "main.py"]
+ENTRYPOINT ["uv", "run", "src/main.py"]
