@@ -52,7 +52,7 @@ class GenerateChanges:
         prod_branch : str
             The production branch of the repository e.g. "main".
         """
-        self.number_of_commits = random.randint(0, 10)
+        self.number_of_commits = random.randint(1, 20)
         self.data_folder = Path(data_folder_name)
         self.file_path = self.data_folder / f"{data_file_name}.txt"
         self.repository_url = repository_url
