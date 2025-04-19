@@ -14,9 +14,10 @@ Let me introduce you to **Super Dev**, an automated project deployed on GCP that
 
 Every day at **10:00 UTC**:
 - A Cloud Scheduler triggers the main script.
+- The developer have 80% chances to work today, if true, the workflow starts.
 - Git repository cloned, user configured, pull `develop` branch.
 - A `feat/super-dev` branch is created from `develop`.
-- A random number between 0 and 10 commits are made in the form of sentences added to a repository file `changes.txt`.
+- A random number between 1 and 20 commits are made in the form of sentences added to a repository file `changes.txt`.
 - Each sentence is commited and pushed to generate activity on the Github profile.
 - A pull request is created then merged from `feat/super-dev` to `develop`.
 - A pull request is created then merges from `develop` to `main`.
