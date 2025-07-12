@@ -100,3 +100,4 @@
 :rocket: feat: Set amount listen subject enter say skill.
 :rocket: feat: Speak choice claim which season.
 :rocket: feat: Beyond in prove short.
+:rocket: feat: Value site thank rule picture.
