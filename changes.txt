@@ -100,3 +100,4 @@
 :rocket: feat: Interview give point how.
 :rocket: feat: City direction draw instead party nearly early.
 :rocket: feat: Get weight system.
+:rocket: feat: Design agreement stand kind.
