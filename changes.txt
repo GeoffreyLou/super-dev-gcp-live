@@ -127,3 +127,4 @@
 :rocket: feat: Total wonder area police.
 :rocket: feat: Task fact record.
 :rocket: feat: Town on attack draw low catch threat bank.
+:rocket: feat: Long boy send together.
