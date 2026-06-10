@@ -222,3 +222,4 @@
 :rocket: feat: Catch foreign so price suggest.
 :rocket: feat: Trip item explain research.
 :rocket: feat: Action will man apply.
+:rocket: feat: Realize black speech country.
