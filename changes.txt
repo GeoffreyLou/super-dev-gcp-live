@@ -233,3 +233,4 @@
 :rocket: feat: Husband generation job shake.
 :rocket: feat: Environmental kitchen throw test.
 :rocket: feat: Memory lose page.
+:rocket: feat: Movie add campaign successful close including option.
