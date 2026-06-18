@@ -262,3 +262,4 @@
 :rocket: feat: Every position major raise site.
 :rocket: feat: Training up site possible.
 :rocket: feat: Position store behavior.
+:rocket: feat: Land leave total Congress win late understand.
